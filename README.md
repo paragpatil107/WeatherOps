@@ -1,63 +1,58 @@
-# WeatherOps — Automated Weather Data Pipeline
 
-WeatherOps is a Python data engineering project. It
-extracts current weather observations for Pune, Mumbai, Nashik, and Nagpur from
-the Open-Meteo API, validates and stores them in SQLite, exports real stored data
-to CSV, records pipeline history, and presents the results in a responsive Flask
-dashboard.
+# WeatherOps 🌦️
 
-## Features
+WeatherOps is a weather data pipeline I built using Python. It fetches weather data for Pune, Mumbai, Nashik, and Nagpur from the Open-Meteo API, validates the data, and stores it in SQLite.
 
-- Real Open-Meteo API integration with no API key for the configured endpoint.
-- Separate extract, transform, validate, load, export, and orchestration modules.
-- Current temperature, humidity, apparent temperature, wind speed, WMO weather
-  code, location, source, observation timestamp, and ingestion timestamp.
-- Explicit request timeouts, retry/backoff behavior, malformed-response handling,
-  and per-city failure isolation.
-- SQLite persistence with parameterized SQL and duplicate prevention using
-  `UNIQUE(city, observation_timestamp)`.
-- Pipeline run history with fetched, accepted, rejected, inserted, duplicate, and
-  error counts.
-- CSV downloads generated from database records, never hardcoded sample data.
-- Flask/Jinja2 dashboard with custom responsive CSS, search, pagination, charts,
-  empty states, loading states, and readable error feedback.
-- A premium dark operations UI with clickable metric cards, city weather
-  cards, analytics pages, pipeline metrics, data-quality reports, data reports,
-  logs, JSON/CSV exports, and optional air-quality readings.
-- Additive SQLite migrations preserve Phase 1 weather records while adding
-  pressure, visibility, quality-report, air-quality, duration, and stage fields.
-- Built-in `unittest` tests with mocked API behavior; tests do not require internet.
+I also built a Flask dashboard to make the collected data easier to explore. It includes weather charts, pipeline run history, data quality reports, logs, and CSV/JSON exports.
 
-## Technology stack
+The main goal of this project was to learn how a data pipeline works in practice, from fetching data from an API to storing, checking, and displaying it.
 
-Python · Requests · Open-Meteo · JSON · Pandas · SQLite/sqlite3 · Flask · Jinja2 ·
-HTML5/CSS3 · Chart.js CDN · unittest · logging · Git-ready structure.
+## What it can do
 
-## Architecture and ETL workflow
+- Fetch current weather data from the Open-Meteo API.
+- Validate and clean API responses before saving them.
+- Store observations in an SQLite database.
+- Prevent duplicate records for the same city and observation timestamp.
+- Handle API errors, timeouts, and failed requests.
+- Keep track of pipeline runs and the number of records processed.
+- Export stored data to CSV and JSON.
+- Display weather observations and charts through a Flask dashboard.
+- Generate data quality reports showing missing values, validation issues, duplicates, and errors.
+- View application logs when something goes wrong.
+- Collect additional air quality data when the optional source is enabled.
 
-1. **Extract** — `src/extraction.py` calls Open-Meteo's current weather endpoint
-   with an explicit timeout and bounded retries.
-2. **Transform** — `src/transformation.py` maps the provider response to one
-   consistent internal record.
-3. **Validate** — `src/validation.py` rejects missing fields, incorrect types,
-   invalid timestamps, and unreasonable physical values.
-4. **Load** — `src/database.py` inserts valid records inside SQLite transactions.
-   Duplicate rows are counted rather than duplicated.
-5. **Export** — `src/export.py` uses Pandas to create UTF-8 CSV output from the
-   database-backed records.
-6. **Monitor** — `src/pipeline.py` records a run summary and the dashboard reads
-   the same database state.
+## Tech stack
 
-See [`docs/architecture.md`](docs/architecture.md) for the component view.
+- **Python** — pipeline logic and data processing
+- **Requests** — API calls
+- **SQLite** — storing weather observations and pipeline history
+- **Flask and Jinja2** — web application
+- **HTML, CSS and JavaScript** — dashboard UI
+- **Chart.js** — charts and visualizations
+- **Pandas** — CSV exports
+- **unittest / pytest** — testing
 
-## Folder structure
+## How the pipeline works
+
+The pipeline follows an ETL workflow:
+
+1. **Extract:** Fetch weather data from Open-Meteo.
+2. **Transform:** Convert the API response into a consistent format.
+3. **Validate:** Check required fields, data types, timestamps, and reasonable values.
+4. **Load:** Save valid observations to SQLite while handling duplicates.
+5. **Export:** Generate CSV files from the stored data.
+6. **Monitor:** Record pipeline results and display them on the dashboard.
+
+Each stage is separated into Python modules to keep the code easier to understand and maintain.
+
+For more details, see [`docs/architecture.md`](docs/architecture.md).
+
+## Project structure
 
 ```text
-automated-data-pipeline/
+WeatherOps/
 ├── app.py
 ├── requirements.txt
-├── README.md
-├── .gitignore
 ├── src/
 │   ├── extraction.py
 │   ├── transformation.py
@@ -69,167 +64,99 @@ automated-data-pipeline/
 │   ├── reports.py
 │   └── air_quality.py
 ├── templates/
-├── static/css/style.css
-├── static/js/dashboard.js
+├── static/
+│   ├── css/
+│   └── js/
 ├── tests/
-├── docs/architecture.md
-├── data/                 # generated DB/CSV files are ignored by Git
-└── logs/                 # generated logs are ignored by Git
+├── docs/
+│   └── architecture.md
+├── data/
+└── logs/
 ```
 
-## Application routes
+The `data/` and `logs/` folders are used for generated files and are excluded from Git.
 
-- `/` — dark overview dashboard with metrics, city cards, charts, and air-quality summary.
-- `/observations` — server-filtered observation table with city/date/search filters and pagination.
-- `/observations/<id>` — observation detail with links to metric-specific analytics.
-- `/analytics/<metric>` — temperature, humidity, wind, pressure, visibility, or conditions analytics.
-- `/air-quality` — US AQI and pollutant readings when the optional source returns real data.
-- `/runs` and `/pipeline` — pipeline history and execution metrics.
-- `/quality-reports` — persisted quality reports, filtering, comparison, and exports.
-- `/reports` — activity and dataset-health summary with Generate Report, CSV, and JSON actions.
-- `/logs` — bounded, filterable, redacted operational log viewer.
-- `/export` — filtered CSV/JSON preview and downloads.
+## Getting started
 
-## Database migrations
+You'll need Python installed on your system.
 
-The application applies additive migrations on startup, so existing rows are kept.
+### 1. Clone the repository
 
-- `weather_observations`: nullable `pressure_hpa` and `visibility_m`.
-- `pipeline_runs`: `duration_ms`, `duration_seconds`, `stage`, and `error`.
-- `data_quality_reports`: formula, score components, field-level missing metrics, and run issues.
-- `air_quality_observations`: source timestamps, US AQI, pollutants, and ingestion timestamps.
-
-The weather uniqueness rule remains `UNIQUE(city, observation_timestamp)`. Air-quality
-rows use the same city/timestamp uniqueness rule.
-
-## Data-quality methodology
-
-Each pipeline run persists a report even when one or more cities fail. The report
-uses accepted normalized weather records for field-level completeness and validity,
-while its `run_counts` section separately records fetched, accepted, rejected,
-inserted, duplicate, API-failure, transformation-error, and validation-error counts.
-
-The displayed score is transparent:
-
-```text
-quality_score =
-  0.70 × completeness_score +
-  0.20 × validity_score +
-  0.10 × consistency_score
+```bash
+git clone <your-repository-url>
+cd WeatherOps
 ```
 
-Each component is a percentage from 0–100. Completeness is the mean field-presence
-percentage; validity is the percentage of accepted records passing the existing
-validation rules; consistency is the percentage of unique city/timestamp keys.
-Duplicates are reported separately and are not automatically treated as invalid.
+Replace `<your-repository-url>` with your actual GitHub repository URL.
 
-`records_fetched`, `records_accepted`, `records_inserted`, `duplicates_skipped`,
-and `records_rejected` describe different pipeline stages and are not expected to
-sum to the same value.
+### 2. Create a virtual environment
 
-## Optional air-quality configuration
-
-The Flask Run Pipeline action enables Open-Meteo Air Quality collection by default.
-It is failure-isolated: an air-quality timeout does not turn a successful weather
-load into a failed weather run.
-
-Disable it for an offline or faster local run:
-
-```powershell
-$env:ENABLE_AIR_QUALITY = "0"
-python app.py
-```
-
-The UI labels the index as **US AQI** and uses the six official US AQI categories:
-Good, Moderate, Unhealthy for Sensitive Groups, Unhealthy, Very Unhealthy, and
-Hazardous (301–500). It does not mix AQI scales or fabricate values. The air-quality
-provider attribution is Open-Meteo / CAMS ENSEMBLE.
-
-## Windows PowerShell setup
-
-Open PowerShell in the project folder:
+On Windows PowerShell:
 
 ```powershell
 py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
+```
+
+### 3. Install dependencies
+
+```powershell
 python -m pip install -r requirements.txt
 ```
 
-If PowerShell blocks activation in your environment, run the project with the
-virtual environment interpreter directly:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-## Start the Flask application
+### 4. Start the application
 
 ```powershell
 python app.py
 ```
 
-Open `http://127.0.0.1:5000/` in a browser. The dashboard starts with an empty
-state. Click **Run pipeline** to make a real API request for all four cities.
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
 
-Optional environment variables:
+Click **Run pipeline** to fetch the latest weather observations. The dashboard will display the results stored in the database.
 
-```powershell
-$env:WEATHER_DB_PATH = "data\weather.db"
-$env:FLASK_SECRET_KEY = "local-development-only"
-$env:FLASK_DEBUG = "1"
-$env:ENABLE_AIR_QUALITY = "1"
-python app.py
-```
+The initial run requires an internet connection to access the API.
 
-## Run the pipeline without the dashboard
+## Running the tests
 
-```powershell
-python -c "from src.pipeline import run_pipeline; print(run_pipeline())"
-```
-
-This command makes real API calls. If the API is unavailable, the result is
-reported as `failure` or `partial_success`; no fabricated observations are
-created.
-
-## Run tests
-
-The required project check is:
+Run the test suite with:
 
 ```powershell
 python -m pytest -q
 ```
 
-The suite uses mocked extraction behavior and temporary database/CSV paths, so
-it does not depend on current weather or internet access.
+The tests use mocked API responses where appropriate, so they can test pipeline behavior without relying on live weather data.
 
-## Database, CSV, and logs
+## Data quality
 
-- `data/weather.db` — SQLite database created on first app/pipeline use.
-- `data/weather-observations.csv` — current export generated after a pipeline run
-  or from the Data export navigation item.
-- `logs/pipeline.log` — structured application and rejection logging.
-- `data/weather-report-*.json` / `data/weather-report-*.csv` — generated activity reports.
-- `data/quality-report-*.json` / `data/quality-report-*.csv` — quality-report exports.
+I wanted the project to do more than just fetch data and save it. The pipeline also tracks what happens to the data during processing.
 
-Generated files are ignored by Git. The application creates the `data` and
-`logs` folders when needed.
+The reports include information such as:
+
+- Records fetched, accepted, rejected, and inserted.
+- Duplicate records skipped.
+- API and processing errors.
+- Missing values and validation issues.
+- Pipeline execution time and status.
+
+These metrics help identify problems instead of assuming every successful API request produces usable data.
+
+## Things I learned
+
+While building WeatherOps, I worked with API integration, JSON processing, SQL, data validation, database operations, Flask, logging, and automated testing.
+
+It also helped me understand how different parts of a data application connect, from the initial API request to the information displayed on the dashboard.
+
+## Current limitations
+
+- The pipeline runs when triggered manually; automatic scheduling is not implemented.
+- It collects current weather observations rather than maintaining a complete historical weather archive.
+- Air quality collection depends on the availability of its separate data source.
+- The dashboard is designed for local use and does not currently include authentication.
+
+## Future improvements
+
+Some things I'd like to explore next are automatic pipeline scheduling, collecting historical weather data, supporting more cities, and improving monitoring and deployment.
 
 ## Screenshots
 
-To be added soon.
-
-## Known limitations and future enhancements
-
-- The pipeline is intentionally a manually triggered local process; it does not
-  install a Windows scheduled task or external orchestrator.
-- Open-Meteo's current endpoint is sampled when a run is started; it is not a
-  historical time-series collector.
-- The optional air-quality source is current-observation based; a failed AQ
-  request leaves the weather pipeline usable and displays an honest unavailable state.
-- The log viewer is intentionally bounded to the most recent configured lines;
-  it is not a replacement for a centralized log platform.
-- The dashboard has no authentication and is intended for local development.
-- Future enhancements could add historical trend storage, configurable city
-  lists, richer WMO descriptions, automated scheduling, and deployment-specific
-  observability.
+Screenshots of the dashboard will be added here.
