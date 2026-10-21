@@ -217,14 +217,7 @@ Generated files are ignored by Git. The application creates the `data` and
 
 ## Screenshots
 
-Run the Flask app locally and capture screenshots of:
-
-1. The Overview page with real observations and the temperature chart.
-2. The Weather observations page with search and CSV download.
-3. The Pipeline runs page showing success, partial-success, or failure history.
-
-Screenshots are intentionally not committed because the dashboard values depend
-on the live API and local database state.
+To be added soon.
 
 ## Known limitations and future enhancements
 
