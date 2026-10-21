@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#071326">
+    <meta name="description" content="WeatherOps data operations dashboard">
+    <title>{% block title %}WeatherOps{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="{{ url_for('index') }}">
+          <span class="brand-mark">W</span>
+          <span><strong>WeatherOps</strong><small>data operations</small></span>
+        </a>
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a class="{% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}"><span>⌂</span><b>Overview</b></a>
+          <a class="{% if request.endpoint in ['observations', 'observation_detail', 'analytics', 'air_quality'] %}active{% endif %}" href="{{ url_for('observations') }}"><span>◌</span><b>Weather observations</b></a>
+          <a class="{% if request.endpoint in ['runs', 'pipeline_dashboard'] %}active{% endif %}" href="{{ url_for('runs') }}"><span>↻</span><b>Pipeline runs</b></a>
+          <a class="{% if request.endpoint in ['quality_reports', 'quality_report_detail'] %}active{% endif %}" href="{{ url_for('quality_reports') }}"><span>✓</span><b>Data quality</b></a>
+          <a class="{% if request.endpoint == 'reports' %}active{% endif %}" href="{{ url_for('reports') }}"><span>▥</span><b>Data reports</b></a>
+          <a class="{% if request.endpoint == 'logs' %}active{% endif %}" href="{{ url_for('logs') }}"><span>≡</span><b>Logs</b></a>
+          <a class="{% if request.endpoint in ['data_export', 'observations_csv', 'observations_csv_alias', 'observations_json'] %}active{% endif %}" href="{{ url_for('data_export') }}"><span>↓</span><b>Data export</b></a>
+          <a class="{% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}"><span>i</span><b>About</b></a>
+        </nav>
+        <div class="sidebar-footer">
+          <span class="status-dot {% if backend_ready %}online{% endif %}"></span>
+          <span>{% if backend_ready %}SQLite connected{% else %}Backend unavailable{% endif %}</span>
+        </div>
+      </aside>
+      <main class="main-content">
+        <header class="topbar">
+          <button class="menu-toggle" type="button" aria-label="Toggle navigation" data-menu-toggle>☰</button>
+          <div class="topbar-copy"><span class="eyebrow">DATA OPERATIONS / {{ self.title()|striptags|upper }}</span><span class="topbar-title">Weather intelligence control room</span></div>
+          <div class="topbar-actions">
+            <button class="icon-button" type="button" aria-label="Refresh page" data-refresh>↻</button>
+            <a class="icon-button" href="{{ url_for('logs') }}" aria-label="Open logs">◌</a>
+            <form method="post" action="{{ url_for('pipeline_run') }}" data-run-form>
+              <button class="button primary topbar-action" type="submit"><span data-run-label>Run pipeline</span><span>▶</span></button>
+            </form>
+          </div>
+        </header>
+        <div class="page-content">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="flash-stack" aria-live="polite">
+                {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}<button type="button" data-dismiss aria-label="Dismiss">×</button></div>{% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  </body>
+</html>
