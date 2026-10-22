@@ -159,4 +159,37 @@ Some things I'd like to explore next are automatic pipeline scheduling, collecti
 
 ## Screenshots
 
-Screenshots of the dashboard will be added here.
+## Screenshots
+
+### Overview Dashboard
+![WeatherOps dashboard](screenshots/weatherops_dashboard.png)
+
+### Temperature and Weather Analytics
+![Temperature and weather analytics](screenshots/weatherops_dashboard_overview_temp_and_weather.png)
+
+### Air Quality
+![Air quality dashboard](screenshots/weatherops_dashboard_overview_air_quality.png)
+
+### Weather Observations
+![Weather observations](screenshots/weatherops_observations.png)
+
+### Pipeline Runs
+![Pipeline execution history](screenshots/weatherops_pipeline_runs.png)
+
+### Data Quality
+![Data quality dashboard](screenshots/weatherops_data_quality.png)
+
+### Data Quality Reports
+![Data quality reports](screenshots/weatherops_data_reports.png)
+
+### Missing Values Report
+![Missing values report](screenshots/weatherops_data_reports_missing_val.png)
+
+### Data Export
+![Weather data export](screenshots/weatherops_export.png)
+
+### Application Logs
+![Application logs](screenshots/weatherops_logs.png)
+
+### About WeatherOps
+![About WeatherOps](screenshots/weatherops_about.png)
