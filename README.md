@@ -183,7 +183,7 @@ Some things I'd like to explore next are automatic pipeline scheduling, collecti
 ![Data quality reports](screenshots/weatherops_data_reports.png)
 
 ### Missing Values Report
-![Missing values report](screenshots/weatherops_data_reports_missing_val.png)
+![Missing values report](screenshots/weatherops_data_reports_missing_values.png)
 
 ### Data Export
 ![Weather data export](screenshots/weatherops_export.png)
