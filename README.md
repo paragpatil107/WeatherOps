@@ -1,5 +1,5 @@
 
-# WeatherOps 🌦️
+# WeatherOps 🌦️ (Automated Data Pipeline)
 
 WeatherOps is a weather data pipeline I built using Python. It fetches weather data for Pune, Mumbai, Nashik, and Nagpur from the Open-Meteo API, validates the data, and stores it in SQLite.
 
